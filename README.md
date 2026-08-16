@@ -39,18 +39,6 @@ The project follows a standard two-stage workflow, split across two notebooks.
 - Used feature importance to identify the strongest predictors of default, and dropped highly correlated/redundant features (correlation > 0.90) to end up with a leaner, more stable feature set
 - Compared model performance before and after this feature pruning step to confirm no drop in predictive power
 
-### 3. SQL Database Analysis — [`sql/analysis.sql`](sql/analysis.sql)
-
-- Extended the project by loading the cleaned credit-card dataset into a local **SQLite database** without modifying the existing ML workflow
-- Created a `customers` table from `data/processed/clean_credit_data.csv` using [`sql/create_database.py`](sql/create_database.py)
-- Performed SQL-based analysis on customer demographics, credit limits, billing amounts, repayment behavior, and default patterns
-- Analyzed overall default rate and default distribution across education, marital status, and age
-- Compared average credit limits, bill amounts, and payment amounts between defaulters and non-defaulters
-- Used `CASE` statements to analyze default rates across different credit-limit categories
-- Used a **CTE (Common Table Expression)** to calculate education-level default statistics
-- Used the **`RANK()` window function** to rank customers by credit limit
-- Added analytical queries for identifying high-credit-limit defaulters, customers with high outstanding bills, and customers whose bill amount exceeds their credit limit
-
 ## Results
 
 **Baseline comparison** (no resampling):
@@ -89,3 +77,59 @@ SMOTE trades a bit of precision and ROC-AUC for a meaningful jump in recall — 
 Feature pruning kept performance essentially unchanged (F1 0.505 → 0.512, ROC-AUC roughly flat) while cutting away 12 redundant columns — a simpler, easier-to-maintain feature set at no real cost in accuracy.
 
 ## Project Structure
+
+```
+Credit-Card-Default-Prediction/
+├── data/
+│   ├── raw/
+│   │   └── UCI_Credit_Card.csv                  # original dataset
+│   └── processed/
+│       ├── clean_credit_data.csv                # after cleaning
+│       └── feature_engineered_credit_data.csv   # after feature engineering (69 features)
+├── notebooks/
+│   ├── 01_EDA.ipynb                             # EDA, cleaning, feature engineering
+│   └── model_building.ipynb                     # modeling, SMOTE, evaluation, feature selection
+|___SQL/
+|    |__analysis.sql                              # SQL-based credit risk analysis
+|    |__create_database.py                        # creates SQLite database from cleaned CSV
+|    |__credit_risk.db                                                                
+└── README.md
+```
+
+## Tech Stack
+
+- **Language:** Python 3
+- **Data handling:** pandas, NumPy
+- **Visualization:** matplotlib, seaborn
+- **Modeling:** scikit-learn (Logistic Regression, Decision Tree, Random Forest), XGBoost, LightGBM
+- **Imbalanced data:** imbalanced-learn (SMOTE)
+- **Environment:** Jupyter Notebook
+
+## Running This Project
+
+```bash
+git clone https://github.com/jiteshjhamnani/Credit-Card-Default-Prediction.git
+cd Credit-Card-Default-Prediction
+
+python -m venv venv
+source venv/bin/activate        
+
+pip install pandas numpy matplotlib seaborn scikit-learn xgboost lightgbm imbalanced-learn jupyter
+
+jupyter notebook
+```
+
+Run `notebooks/01_EDA.ipynb` first — it produces the processed CSVs that `notebooks/model_building.ipynb` depends on.
+
+## Future Improvements
+
+- Hyperparameter tuning (grid/random/Bayesian search) for the tree-based models, which were run with mostly default parameters
+- Try CatBoost and a stacked/blended ensemble of the top models
+- Cost-sensitive learning (class weighting) as an alternative to SMOTE, and a comparison of the two
+- Model explainability with SHAP to make individual predictions interpretable for a credit risk analyst
+- Package the final model behind a simple API for real-time scoring
+
+## Author
+
+**Jitesh Jhamnani**
+[GitHub](https://github.com/jiteshjhamnani)
